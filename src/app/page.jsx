@@ -47,8 +47,8 @@ export default function AdminLogin() {
 
     if (error) {
       Swal.fire({
-        title: "Error al iniciar sesión: ",
-        text: error.message,
+        title: "Error al iniciar sesión",
+        text: "Verifica que el correo y la contraseña sean correctos.",
         icon: "error",
         confirmButtonColor: "#d33",
       });
@@ -60,25 +60,25 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-white p-4">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50 p-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden">
         <div className="bg-blue-950 p-8 text-center">
-          <h1 className="text-4xl font-black text-white tracking-widest uppercase">
-            MILAS
+          <h1 className="text-3xl md:text-4xl font-black text-white tracking-widest uppercase">
+            COMITÉ
           </h1>
           <p className="text-blue-100 font-medium mt-2 tracking-widest uppercase text-xs">
-            Acceso al Sistema
+            Gestión de Graduación
           </p>
         </div>
 
         <form onSubmit={handleLogin} className="p-8 space-y-6">
           <div>
             <label className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">
-              Usuario / Correo
+              Correo de Organizador
             </label>
             <input
               type="email"
-              placeholder="admin@milass.com"
+              placeholder="organizador@graduacion.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full border-2 border-slate-200 p-3 rounded-lg focus:outline-none focus:border-blue-700 focus:ring-1 focus:ring-blue-700 transition-all text-slate-800 font-medium bg-slate-50"

@@ -9,7 +9,7 @@ export default function DashboardLayout({ children }) {
   const router = useRouter();
   const pathname = usePathname();
   const [user, setUser] = useState(null);
-  const [userRole, setUserRole] = useState(null); // 🟢 ESTADO PARA EL ROL
+  const [userRole, setUserRole] = useState(null);
 
   // ESTADO DEL MENÚ LATERAL
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -27,7 +27,7 @@ export default function DashboardLayout({ children }) {
           if (error) await supabase.auth.signOut();
           router.push("/");
         } else {
-          // 🟢 BUSCAMOS EL ROL DEL USUARIO EN LA TABLA PERFILES
+          // BUSCAMOS EL ROL DEL USUARIO EN LA TABLA PERFILES
           const { data: perfil } = await supabase
             .from("perfiles")
             .select("rol, nombre")
@@ -35,7 +35,7 @@ export default function DashboardLayout({ children }) {
             .single();
 
           setUser({ ...session.user, nombre: perfil?.nombre });
-          setUserRole(perfil?.rol || "empleado"); // Por defecto si no tiene, es empleado
+          setUserRole(perfil?.rol || "empleado"); // Por defecto si no tiene
         }
       } catch (err) {
         await supabase.auth.signOut();
@@ -72,78 +72,40 @@ export default function DashboardLayout({ children }) {
     router.push("/");
   };
 
-  // 🟢 RUTAS ACTUALIZADAS CON PROTECCIÓN
+  // 🟢 RUTAS ACTUALIZADAS PARA EL COMITÉ DE GRADUACIÓN
   const allLinks = [
     {
-      name: "Inicio",
+      name: "Resumen Global",
       href: "/dashboard",
-      icon: "🏠",
+      icon: "📊",
       roles: ["admin", "editor", "empleado"],
     },
     {
-      name: "Tareas",
-      href: "/dashboard/tareas",
-      icon: "✅",
+      name: "Graduados",
+      href: "/dashboard/invitados",
+      icon: "🎓",
       roles: ["admin", "editor", "empleado"],
-    }, // 🟢 Nueva ruta
-    {
-      name: "Inventario",
-      href: "/dashboard/inventario",
-      icon: "📦",
-      roles: ["admin", "empleado"],
     },
     {
-      name: "Movimientos",
-      href: "/dashboard/movimientos",
-      icon: "📅",
-      roles: ["admin", "empleado"],
-    },
-    {
-      name: "Facturas",
-      href: "/dashboard/facturas",
-      icon: "📄",
-      roles: ["admin", "editor"],
-    },
-     {
-      name: "Viajes",
-      href: "/dashboard/viajes",
-      icon: "🚗",
-      roles: ["admin", "empleado"],
-    },
-    {
-      name: "Directorio de Clientes",
-      href: "/dashboard/clientes",
-      icon: "📇",
-      roles: ["admin", "editor"],
-    },
-
-    {
-      name: "Correo",
-      href: "/dashboard/correo",
-      icon: "✉️",
-      roles: ["admin"],
-    },
-    {
-      name: "Usuarios",
+      name: "Organizadores", // Antes Usuarios
       href: "/dashboard/usuarios",
       icon: "👥",
-      roles: ["admin"],
+      roles: ["admin"], // Solo el admin principal puede agregar a las otras organizadoras
     },
     {
-      name: "Configuración",
+      name: "Precios", // Antes Configuración general
       href: "/dashboard/configuracion",
       icon: "⚙️",
-      roles: ["admin", "empleado"],
+      roles: ["admin", "editor"],
     },
   ];
 
-  // 🟢 Filtramos el menú para que solo se muestre lo que su rol permite
+  // Filtramos el menú para que solo se muestre lo que su rol permite
   const navLinks = allLinks.filter(
-    (link) => userRole && link.roles.includes(userRole),
+    (link) => userRole && link.roles.includes(userRole)
   );
 
   return (
-    /* 🟢 CORRECCIÓN: Usamos un div contenedor en lugar de html/body para no romper Next.js */
     <div className="bg-slate-50 flex min-h-screen w-full">
       {!user ? (
         <div className="w-full flex-1 flex items-center justify-center bg-slate-50 text-blue-950 font-bold text-xl">
@@ -169,25 +131,15 @@ export default function DashboardLayout({ children }) {
                }`}
           >
             <div className="flex h-16 items-center justify-between px-6 border-b border-blue-800 bg-blue-950 shrink-0">
-              <h2 className="text-2xl  text-center font-black tracking-widest text-white">
-                MILAS
+              <h2 className="text-xl text-center font-black tracking-widest text-white">
+                COMITÉ GRADUACIÓN
               </h2>
               <button
                 onClick={() => setIsSidebarOpen(false)}
                 className="md:hidden text-blue-300 hover:text-white bg-blue-800/50 hover:bg-blue-700 p-2 rounded-lg transition-colors"
               >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
@@ -199,9 +151,7 @@ export default function DashboardLayout({ children }) {
                   <Link
                     key={link.name}
                     href={link.href}
-                    onClick={() =>
-                      window.innerWidth < 768 && setIsSidebarOpen(false)
-                    }
+                    onClick={() => window.innerWidth < 768 && setIsSidebarOpen(false)}
                     className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all whitespace-nowrap ${
                       isActive
                         ? "bg-blue-700 text-white shadow-md border border-blue-600/50"
@@ -213,14 +163,6 @@ export default function DashboardLayout({ children }) {
                   </Link>
                 );
               })}
-
-              <Link
-                href="https://www.milas.com.mx"
-                target="_blank"
-                className="mt-auto flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-blue-200 hover:bg-blue-800 transition-all border border-blue-700/50"
-              >
-                <span>🌐</span> Ver Sitio Público
-              </Link>
             </nav>
           </aside>
 
@@ -233,18 +175,8 @@ export default function DashboardLayout({ children }) {
                   onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                   className="text-slate-500 hover:text-blue-700 hover:bg-blue-50 p-2 rounded-lg transition-colors focus:outline-none"
                 >
-                  <svg
-                    className="w-6 h-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 6h16M4 12h16M4 18h16"
-                    />
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                   </svg>
                 </button>
                 <h1 className="text-base md:text-lg font-bold text-blue-950 truncate">
@@ -257,7 +189,6 @@ export default function DashboardLayout({ children }) {
                   <span className="hidden md:inline text-sm font-medium text-slate-600">
                     {user?.nombre || user?.email}
                   </span>
-                  {/* 🟢 Mostramos el rol debajo del nombre de usuario */}
                   <span className="hidden md:inline text-[10px] font-bold text-blue-700 uppercase tracking-widest">
                     {userRole}
                   </span>
