@@ -6,10 +6,11 @@ import { supabase } from "@/app/_lib/supabase/supabase";
 import GraduadoFormModal from "@/app/_components/GraduadoFormModal";
 import CuentaDetalleModal from "@/app/_components/CuentaDetalleModal";
 import Swal from "sweetalert2";
-import { Eye, Trash2, User, Baby } from "lucide-react"; // <-- Importamos los iconos nuevos
+import { Eye, Trash2, User, Baby } from "lucide-react";
 
 export default function InvitadosPage() {
   const [graduados, setGraduados] = useState([]);
+  const [abonos, setAbonos] = useState([]); // 🟢 NUEVO: Estado para guardar los abonos
   const [precios, setPrecios] = useState({ costo_adulto: 0, costo_nino: 0 });
   const [loading, setLoading] = useState(true);
 
@@ -18,6 +19,7 @@ export default function InvitadosPage() {
 
   const fetchData = useCallback(async () => {
     try {
+      // 1. Cargar Precios
       const { data: configData } = await supabase
         .from("precios_configuracion")
         .select("*")
@@ -25,13 +27,17 @@ export default function InvitadosPage() {
         .single();
       if (configData) setPrecios(configData);
 
+      // 2. Cargar Graduados e Invitados
       const { data: gradData, error: gradError } = await supabase
         .from("graduados")
         .select(`*, invitados (*)`)
         .order("creado_en", { ascending: false });
-
       if (gradError) throw gradError;
       setGraduados(gradData);
+
+      // 3. 🟢 NUEVO: Cargar TODOS los Abonos
+      const { data: abonosData } = await supabase.from("abonos").select("*");
+      if (abonosData) setAbonos(abonosData);
     } catch (error) {
       console.error("Error cargando datos:", error);
     }
@@ -98,27 +104,30 @@ export default function InvitadosPage() {
     }
   };
 
+  // 🟢 MATEMÁTICA ACTUALIZADA BASADA EN ABONOS
   const totales = useMemo(() => {
     let esperado = 0;
     let recaudado = 0;
-
-    // 🟢 NUEVO: Variables para contar personas globalmente
     let totalAdultos = 0;
     let totalNinos = 0;
 
     const costoAdulto = Number(precios.costo_adulto) || 0;
     const costoNino = Number(precios.costo_nino) || 0;
 
+    // 1. Calculamos el DINERO REAL sumando la tabla de abonos
+    abonos.forEach((abono) => {
+      recaudado += Number(abono.monto);
+    });
+
+    // 2. Calculamos lo ESPERADO y la ASISTENCIA recorriendo los invitados
     graduados.forEach((graduado) => {
       esperado += costoAdulto;
-      if (graduado.pagado) recaudado += costoAdulto;
       totalAdultos += 1; // El graduado
 
       if (graduado.invitados && graduado.invitados.length > 0) {
         graduado.invitados.forEach((invitado) => {
           const costoInvitado = invitado.es_nino ? costoNino : costoAdulto;
           esperado += costoInvitado;
-          if (invitado.pagado) recaudado += costoInvitado;
 
           if (invitado.es_nino) totalNinos += 1;
           else totalAdultos += 1;
@@ -133,7 +142,7 @@ export default function InvitadosPage() {
       totalAdultos,
       totalNinos,
     };
-  }, [graduados, precios]);
+  }, [graduados, abonos, precios]); // 🟢 Importante: re-calcular si cambian los abonos
 
   return (
     <div className="p-6 md:p-10 w-full max-w-7xl mx-auto flex flex-col gap-8">
